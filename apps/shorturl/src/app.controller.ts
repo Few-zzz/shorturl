@@ -9,7 +9,9 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { join } from 'path';
 import { AppService, NOT_FOUND } from './app.service';
+import { PUBLIC_DIR } from './public-dir';
 
 // หน้าเว็บ (/, /style.css, /app.js) ส่งจากโฟลเดอร์ public ซึ่งตั้งค่าไว้ใน main.ts
 @Controller()
@@ -26,6 +28,13 @@ export class AppController {
   async listLinks(@Res() res: Response) {
     const result = await this.appService.listLinksWithClicks();
     res.status(result.status).json(result.body);
+  }
+
+  // service แบบ free บน Render จะตื่นเฉพาะเมื่อถูกเรียกจากภายนอก Render
+  // คำขอจาก Gateway ปลุกไม่ได้ หน้าเว็บจึงใช้รายการนี้เรียก service จาก browser โดยตรง
+  @Get('api/wake-targets')
+  wakeTargets(): string[] {
+    return this.appService.backendOrigins();
   }
 
   @Get('api/stats/:code')
@@ -74,6 +83,12 @@ export class AppController {
       : NOT_FOUND;
     if (result.status === 302 && result.location) {
       res.redirect(302, result.location);
+      return;
+    }
+    // Redirect Service กำลังพักอยู่: ส่งหน้ารอที่ให้ browser ปลุก service แล้วลองใหม่เอง
+    if (result.status === 502 || result.status === 503) {
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(503).sendFile(join(PUBLIC_DIR, 'starting.html'));
       return;
     }
     res.status(result.status).json(result.body);

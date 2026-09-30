@@ -110,10 +110,18 @@ function linkRow(link) {
   return tr;
 }
 
-async function loadLinks() {
+const WAKING_TEXT = 'กำลังเริ่มระบบ อาจใช้เวลาประมาณ 1 นาที…';
+const MAX_WAKE_RETRIES = 2;
+
+async function loadLinks(attempt = 0) {
   try {
     const response = await fetch('/api/links');
     const data = await response.json();
+    if (window.isBackendAsleep(response.status) && attempt < MAX_WAKE_RETRIES) {
+      showEmpty(WAKING_TEXT);
+      await window.wakeBackends();
+      return loadLinks(attempt + 1);
+    }
     if (!response.ok) {
       showEmpty(errorText(data));
       return;
@@ -127,6 +135,14 @@ async function loadLinks() {
   } catch {
     showEmpty('โหลดรายการไม่สำเร็จ');
   }
+}
+
+function createLink(payload) {
+  return fetch('/api/links', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 }
 
 form.addEventListener('submit', async (event) => {
@@ -148,11 +164,13 @@ form.addEventListener('submit', async (event) => {
 
   submitButton.disabled = true;
   try {
-    const response = await fetch('/api/links', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    let response = await createLink(payload);
+    if (window.isBackendAsleep(response.status)) {
+      showError(WAKING_TEXT);
+      await window.wakeBackends();
+      response = await createLink(payload);
+      clearError();
+    }
     const data = await response.json();
     if (response.ok) {
       showResult(data.code);
@@ -176,5 +194,8 @@ copyButton.addEventListener('click', async () => {
   }
 });
 
-document.getElementById('refresh').addEventListener('click', loadLinks);
+document.getElementById('refresh').addEventListener('click', () => loadLinks());
+
+// ปลุก service ข้างหลังทุกครั้งที่เปิดหน้า เพื่อให้พร้อมก่อนผู้ใช้ย่อหรือเปิดลิงก์
+window.wakeBackends();
 loadLinks();

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <title>กำลังเริ่มระบบ – Short URL</title>
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="starting">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <span>Short URL</span>
+    </div>
+
+    <section class="hero" aria-live="polite">
+      <h1 id="title">กำลังเริ่มระบบ</h1>
+      <p id="status">ระบบพักอยู่เพราะไม่มีผู้ใช้สักครู่ กำลังเปิดลิงก์ให้โดยอัตโนมัติ อาจใช้เวลาประมาณ 1 นาที</p>
+      <div id="spinner" class="spinner" aria-hidden="true"></div>
+      <button id="retry" class="primary" type="button" hidden>ลองใหม่</button>
+    </section>
+  </main>
+
+  <script src="/wake.js" defer></script>
+  <script src="/starting.js" defer></script>
+</body>
+</html>

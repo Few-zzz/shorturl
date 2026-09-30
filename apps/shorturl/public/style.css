@@ -473,3 +473,34 @@ td.empty {
     scroll-behavior: auto !important;
   }
 }
+
+/* หน้ารอระหว่างปลุก service (starting.html) */
+.starting .hero h1 {
+  font-size: clamp(28px, 6vw, 38px);
+}
+
+.starting .primary {
+  margin-top: 28px;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  margin-top: 28px;
+  border: 2px solid var(--line);
+  border-top-color: var(--fg);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+}

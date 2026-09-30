@@ -4,23 +4,24 @@ import type { NextFunction, Request, Response } from 'express';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module';
-
-// หน้าเว็บอยู่นอกผลลัพธ์ของการ build จึงอ้างจากโฟลเดอร์หลักของโปรเจกต์
-// ทั้ง `nest start` บนเครื่องและ start command บน Render รันจากโฟลเดอร์หลักเหมือนกัน
-const PUBLIC_DIR = join(process.cwd(), 'apps', 'shorturl', 'public');
+import { AppService } from './app.service';
+import { PUBLIC_DIR } from './public-dir';
 
 // อนุญาตเฉพาะไฟล์สคริปต์ สไตล์ และรูปจากโดเมนของระบบเอง
 // สคริปต์ที่ถูกแทรกเข้ามาในหน้า (XSS) จะไม่ถูก browser รัน
-const CONTENT_SECURITY_POLICY = [
-  "default-src 'none'",
-  "script-src 'self'",
-  "style-src 'self'",
-  "img-src 'self'",
-  "connect-src 'self'",
-  "base-uri 'none'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join('; ');
+// connect-src เพิ่ม service ข้างหลังไว้ด้วย เพื่อให้หน้าเว็บเรียกปลุก service ที่พักอยู่ได้
+function contentSecurityPolicy(backendOrigins: string[]): string {
+  return [
+    "default-src 'none'",
+    "script-src 'self'",
+    "style-src 'self'",
+    "img-src 'self'",
+    ["connect-src 'self'", ...backendOrigins].join(' '),
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+}
 
 async function bootstrap() {
   if (!existsSync(join(PUBLIC_DIR, 'index.html'))) {
@@ -30,9 +31,11 @@ async function bootstrap() {
   }
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const csp = contentSecurityPolicy(app.get(AppService).backendOrigins());
+
   app.disable('x-powered-by');
   app.use((_req: Request, res: Response, next: NextFunction) => {
-    res.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+    res.setHeader('Content-Security-Policy', csp);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

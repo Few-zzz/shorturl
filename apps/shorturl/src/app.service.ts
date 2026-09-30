@@ -40,6 +40,24 @@ export class AppService {
     return CODE_PATTERN.test(code);
   }
 
+  // ที่อยู่ (origin) ของ service ข้างหลัง ใช้ให้ browser ปลุก service และใช้ตั้งค่า CSP
+  backendOrigins(): string[] {
+    const names: ServiceName[] = [
+      'LINK_SERVICE_URL',
+      'REDIRECT_SERVICE_URL',
+      'ANALYTICS_SERVICE_URL',
+    ];
+    const origins = new Set<string>();
+    for (const name of names) {
+      try {
+        origins.add(new URL(this.config.getOrThrow<string>(name)).origin);
+      } catch {
+        // ข้ามค่าที่ไม่ได้ตั้งหรือไม่ใช่ URL
+      }
+    }
+    return [...origins];
+  }
+
   async request(
     service: ServiceName,
     path: string,
