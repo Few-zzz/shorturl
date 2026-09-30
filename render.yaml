@@ -1,0 +1,87 @@
+# Render Blueprint: สร้างทั้ง 4 service จาก repository นี้ในครั้งเดียว
+# service แบบ free รับ traffic ผ่าน private network ไม่ได้ จึงเรียกกันผ่าน URL สาธารณะ
+# ถ้า Render ตั้งชื่อ service ต่างจากในไฟล์นี้ (เช่น ชื่อซ้ำ) ต้องแก้ค่า *_SERVICE_URL ให้ตรง
+
+services:
+  - type: web
+    name: fewz-surl
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev && npx nest build shorturl
+    startCommand: node dist/apps/shorturl/main.js
+    healthCheckPath: /
+    buildFilter:
+      paths:
+        - apps/shorturl/**
+        - package.json
+        - package-lock.json
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: 24.21.0
+      - key: LINK_SERVICE_URL
+        value: https://fewz-surl-link.onrender.com
+      - key: REDIRECT_SERVICE_URL
+        value: https://fewz-surl-redirect.onrender.com
+      - key: ANALYTICS_SERVICE_URL
+        value: https://fewz-surl-analytics.onrender.com
+
+  - type: web
+    name: fewz-surl-link
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev && npx nest build link-service
+    startCommand: node dist/apps/link-service/main.js
+    buildFilter:
+      paths:
+        - apps/link-service/**
+        - package.json
+        - package-lock.json
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: 24.21.0
+      - key: DATABASE_URL
+        sync: false
+
+  - type: web
+    name: fewz-surl-redirect
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev && npx nest build redirect-service
+    startCommand: node dist/apps/redirect-service/main.js
+    buildFilter:
+      paths:
+        - apps/redirect-service/**
+        - package.json
+        - package-lock.json
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: 24.21.0
+      - key: DATABASE_URL
+        sync: false
+      - key: ANALYTICS_SERVICE_URL
+        value: https://fewz-surl-analytics.onrender.com
+
+  - type: web
+    name: fewz-surl-analytics
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --include=dev && npx nest build analytics-service
+    startCommand: node dist/apps/analytics-service/main.js
+    buildFilter:
+      paths:
+        - apps/analytics-service/**
+        - package.json
+        - package-lock.json
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: 24.21.0
+      - key: MONGODB_URI
+        sync: false

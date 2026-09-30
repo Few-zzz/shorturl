@@ -15,8 +15,8 @@ export interface UpstreamResult {
   location?: string;
 }
 
-// service ฟรีบน Render ใช้เวลาตื่นหลายสิบวินาที จึงให้เวลารอทั่วไปนาน
-const DEFAULT_TIMEOUT_MS = 60_000;
+// service ฟรีบน Render ใช้เวลาตื่นประมาณหนึ่งนาที จึงให้เวลารอทั่วไปนานกว่านั้น
+const DEFAULT_TIMEOUT_MS = 100_000;
 // จำนวนคลิกเป็นข้อมูลเสริม ถ้า Analytics ช้าให้แสดงรายการลิงก์ไปก่อน
 const STATS_TIMEOUT_MS = 3_000;
 
@@ -124,11 +124,12 @@ export class AppService {
 
   // ใช้โดเมนจากค่าตั้งค่าเท่านั้น ไม่อ่านจาก Host header ของ request
   // เพื่อไม่ให้ผู้โจมตีปลอม header แล้วได้ QR ที่ชี้ไปโดเมนอื่น
+  // บน Render ถ้าไม่ได้ตั้ง PUBLIC_BASE_URL จะใช้ RENDER_EXTERNAL_URL ที่ Render กำหนดให้
   shortUrl(code: string): string {
-    const baseUrl = this.config.get<string>(
-      'PUBLIC_BASE_URL',
-      'http://localhost:3000',
-    );
+    const baseUrl =
+      this.config.get<string>('PUBLIC_BASE_URL') ||
+      this.config.get<string>('RENDER_EXTERNAL_URL') ||
+      'http://localhost:3000';
     return `${baseUrl.replace(/\/+$/, '')}/${code}`;
   }
 
