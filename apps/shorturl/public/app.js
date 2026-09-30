@@ -11,9 +11,52 @@ const copyButton = document.getElementById('copy');
 const qrImage = document.getElementById('qr-image');
 const qrDownload = document.getElementById('qr-download');
 const rows = document.getElementById('rows');
+const useExpiry = document.getElementById('use-expiry');
+const usePassword = document.getElementById('use-password');
+const expiryField = document.getElementById('expiry-field');
+const passwordField = document.getElementById('password-field');
+const expiryInput = document.getElementById('expiry');
+const passwordInput = document.getElementById('password');
 const COLUMNS = 5;
 
 document.getElementById('alias-prefix').textContent = `${location.host}/`;
+
+// ค่าเวลาในรูปแบบที่ช่อง datetime-local ใช้ (เวลาท้องถิ่นของผู้ใช้)
+function localDateTime(date) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
+}
+
+// แสดงช่องกรอกของตัวเลือกเสริมเฉพาะเมื่อติ๊กเลือก และล้างค่าเมื่อเลิกเลือก
+function syncOptions() {
+  expiryField.hidden = !useExpiry.checked;
+  passwordField.hidden = !usePassword.checked;
+  if (useExpiry.checked) {
+    expiryInput.min = localDateTime(new Date());
+  } else {
+    expiryInput.value = '';
+  }
+  if (!usePassword.checked) {
+    passwordInput.value = '';
+  }
+}
+
+useExpiry.addEventListener('change', () => {
+  syncOptions();
+  if (useExpiry.checked) {
+    expiryInput.focus();
+  }
+});
+usePassword.addEventListener('change', () => {
+  syncOptions();
+  if (usePassword.checked) {
+    passwordInput.focus();
+  }
+});
+syncOptions();
 
 function shortUrl(code) {
   return `${location.origin}/${code}`;
@@ -64,6 +107,42 @@ function showEmpty(text) {
   rows.appendChild(tr);
 }
 
+function tag(text, className) {
+  const span = document.createElement('span');
+  span.className = className ? `tag ${className}` : 'tag';
+  span.textContent = text;
+  return span;
+}
+
+// ป้ายบอกตัวเลือกเสริมของลิงก์: รหัสผ่านและวันหมดอายุ
+function linkTags(link) {
+  const items = [];
+  if (link.hasPassword) {
+    items.push(tag('รหัสผ่าน'));
+  }
+  if (link.expiresAt) {
+    const expires = new Date(link.expiresAt);
+    if (expires.getTime() <= Date.now()) {
+      items.push(tag('หมดอายุแล้ว', 'expired'));
+    } else {
+      const text = expires.toLocaleString('th-TH', {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      items.push(tag(`หมดอายุ ${text}`));
+    }
+  }
+  if (items.length === 0) {
+    return null;
+  }
+  const box = document.createElement('div');
+  box.className = 'tags';
+  items.forEach((item) => box.appendChild(item));
+  return box;
+}
+
 function linkRow(link) {
   const tr = document.createElement('tr');
 
@@ -75,10 +154,17 @@ function linkRow(link) {
   anchor.rel = 'noopener noreferrer';
   anchor.textContent = `/${link.code}`;
   code.appendChild(anchor);
+  const tags = linkTags(link);
+  if (tags) {
+    code.appendChild(tags);
+  }
   tr.appendChild(code);
 
-  const original = cell(link.originalUrl, 'url');
-  original.title = link.originalUrl;
+  // server ไม่ส่ง URL ต้นทางของลิงก์ที่ตั้งรหัสผ่านมาให้
+  const original = cell(link.originalUrl ?? 'ซ่อนไว้', 'url');
+  if (link.originalUrl) {
+    original.title = link.originalUrl;
+  }
   tr.appendChild(original);
 
   const clicks = cell(link.clicks === null ? '–' : String(link.clicks), 'num');
@@ -162,6 +248,31 @@ form.addEventListener('submit', async (event) => {
     payload.alias = alias;
   }
 
+  if (useExpiry.checked) {
+    const expires = new Date(expiryInput.value);
+    if (!expiryInput.value || Number.isNaN(expires.getTime())) {
+      showError('กรุณาเลือกวันและเวลาหมดอายุ');
+      expiryInput.focus();
+      return;
+    }
+    if (expires.getTime() <= Date.now()) {
+      showError('วันหมดอายุต้องเป็นเวลาในอนาคต');
+      expiryInput.focus();
+      return;
+    }
+    // แปลงจากเวลาท้องถิ่นของผู้ใช้เป็นเวลามาตรฐาน (UTC) ก่อนส่ง
+    payload.expiresAt = expires.toISOString();
+  }
+
+  if (usePassword.checked) {
+    if (passwordInput.value.length < 4) {
+      showError('รหัสผ่านต้องยาวอย่างน้อย 4 ตัวอักษร');
+      passwordInput.focus();
+      return;
+    }
+    payload.password = passwordInput.value;
+  }
+
   submitButton.disabled = true;
   try {
     let response = await createLink(payload);
@@ -175,6 +286,7 @@ form.addEventListener('submit', async (event) => {
     if (response.ok) {
       showResult(data.code);
       form.reset();
+      syncOptions();
       loadLinks();
     } else {
       showError(errorText(data));

@@ -47,6 +47,26 @@
         </div>
       </div>
 
+      <!-- ตัวเลือกเสริม: ช่องกรอกจะแสดงเมื่อติ๊กเลือกเท่านั้น -->
+      <div class="options">
+        <label class="check"><input id="use-expiry" type="checkbox"> กำหนดวันหมดอายุ</label>
+        <label class="check"><input id="use-password" type="checkbox"> ตั้งรหัสผ่าน</label>
+      </div>
+
+      <div id="expiry-field" class="option-field" hidden>
+        <label for="expiry">หมดอายุเมื่อ</label>
+        <div class="alias-input">
+          <input id="expiry" type="datetime-local">
+        </div>
+      </div>
+
+      <div id="password-field" class="option-field" hidden>
+        <label for="password">รหัสผ่านสำหรับเปิดลิงก์</label>
+        <div class="alias-input">
+          <input id="password" type="password" autocomplete="new-password" minlength="4" maxlength="64" placeholder="4-64 ตัวอักษร">
+        </div>
+      </div>
+
       <p id="error" class="error" role="alert" hidden></p>
     </form>
 

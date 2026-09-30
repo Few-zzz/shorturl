@@ -13,6 +13,14 @@ import { join } from 'path';
 import { AppService, NOT_FOUND } from './app.service';
 import { PUBLIC_DIR } from './public-dir';
 
+// หน้าที่แสดงแทนการ redirect ตามสถานะที่ Redirect Service ตอบมา
+const STATUS_PAGES: Record<number, { status: number; file: string }> = {
+  401: { status: 401, file: 'unlock.html' }, // ลิงก์ตั้งรหัสผ่านไว้
+  410: { status: 410, file: 'expired.html' }, // ลิงก์หมดอายุแล้ว
+  502: { status: 503, file: 'starting.html' }, // service พักอยู่ ให้ browser ปลุกแล้วลองใหม่
+  503: { status: 503, file: 'starting.html' },
+};
+
 // หน้าเว็บ (/, /style.css, /app.js) ส่งจากโฟลเดอร์ public ซึ่งตั้งค่าไว้ใน main.ts
 @Controller()
 export class AppController {
@@ -85,12 +93,28 @@ export class AppController {
       res.redirect(302, result.location);
       return;
     }
-    // Redirect Service กำลังพักอยู่: ส่งหน้ารอที่ให้ browser ปลุก service แล้วลองใหม่เอง
-    if (result.status === 502 || result.status === 503) {
+    // กรณีที่เปิดลิงก์ตรงๆ ไม่ได้ ส่งหน้าเว็บที่อธิบายสถานะให้ผู้ใช้แทน JSON
+    const page = STATUS_PAGES[result.status];
+    if (page) {
       res.setHeader('Cache-Control', 'no-store');
-      res.status(503).sendFile(join(PUBLIC_DIR, 'starting.html'));
+      res.status(page.status).sendFile(join(PUBLIC_DIR, page.file));
       return;
     }
+    res.status(result.status).json(result.body);
+  }
+
+  @Post('api/unlock/:code')
+  async unlock(
+    @Param('code') code: string,
+    @Body() body: { password?: unknown },
+    @Res() res: Response,
+    @Headers('referer') referrer?: string,
+    @Headers('user-agent') userAgent?: string,
+  ) {
+    const result = this.appService.isValidCode(code)
+      ? await this.appService.unlock(code, body?.password, referrer, userAgent)
+      : NOT_FOUND;
+    res.setHeader('Cache-Control', 'no-store');
     res.status(result.status).json(result.body);
   }
 }

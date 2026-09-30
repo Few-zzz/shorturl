@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <title>ลิงก์นี้ตั้งรหัสผ่านไว้ – Short URL</title>
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="starting">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <span>Short URL</span>
+    </div>
+
+    <section class="hero">
+      <h1>ลิงก์นี้ตั้งรหัสผ่านไว้</h1>
+      <p>กรอกรหัสผ่านที่ได้รับจากผู้สร้างลิงก์เพื่อไปต่อ</p>
+    </section>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label class="sr-only" for="password">รหัสผ่าน</label>
+        <input id="password" type="password" autocomplete="off" maxlength="64" placeholder="รหัสผ่าน" required autofocus>
+        <button id="submit" class="primary" type="submit">เปิดลิงก์</button>
+      </div>
+      <p id="error" class="error" role="alert" hidden></p>
+    </form>
+  </main>
+
+  <script src="/wake.js" defer></script>
+  <script src="/unlock.js" defer></script>
+</body>
+</html>

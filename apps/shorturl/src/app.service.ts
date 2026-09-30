@@ -140,6 +140,28 @@ export class AppService {
     });
   }
 
+  unlock(
+    code: string,
+    password: unknown,
+    referrer?: string,
+    userAgent?: string,
+  ): Promise<UpstreamResult> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (referrer) {
+      headers['referer'] = referrer;
+    }
+    if (userAgent) {
+      headers['user-agent'] = userAgent;
+    }
+    return this.request('REDIRECT_SERVICE_URL', `/${code}/unlock`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ password }),
+    });
+  }
+
   // ใช้โดเมนจากค่าตั้งค่าเท่านั้น ไม่อ่านจาก Host header ของ request
   // เพื่อไม่ให้ผู้โจมตีปลอม header แล้วได้ QR ที่ชี้ไปโดเมนอื่น
   // บน Render ถ้าไม่ได้ตั้ง PUBLIC_BASE_URL จะใช้ RENDER_EXTERNAL_URL ที่ Render กำหนดให้

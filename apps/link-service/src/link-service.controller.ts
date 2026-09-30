@@ -6,8 +6,21 @@ export class LinkServiceController {
   constructor(private readonly linkServiceService: LinkServiceService) {}
 
   @Post()
-  create(@Body() body: { url?: string; alias?: string }) {
-    return this.linkServiceService.create(body?.url ?? '', body?.alias);
+  create(
+    @Body()
+    body: {
+      url?: string;
+      alias?: string;
+      expiresAt?: string;
+      password?: string;
+    },
+  ) {
+    return this.linkServiceService.create({
+      url: body?.url ?? '',
+      alias: body?.alias,
+      expiresAt: body?.expiresAt,
+      password: body?.password,
+    });
   }
 
   @Get()
