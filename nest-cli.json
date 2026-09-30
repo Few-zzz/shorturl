@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/shorturl/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "builder": "rspack",
+    "tsConfigPath": "apps/shorturl/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/shorturl",
+  "projects": {
+    "analytics-service": {
+      "type": "application",
+      "root": "apps/analytics-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/analytics-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/analytics-service/tsconfig.app.json"
+      }
+    },
+    "link-service": {
+      "type": "application",
+      "root": "apps/link-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/link-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/link-service/tsconfig.app.json"
+      }
+    },
+    "redirect-service": {
+      "type": "application",
+      "root": "apps/redirect-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/redirect-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/redirect-service/tsconfig.app.json"
+      }
+    },
+    "shorturl": {
+      "type": "application",
+      "root": "apps/shorturl",
+      "entryFile": "main",
+      "sourceRoot": "apps/shorturl/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/shorturl/tsconfig.app.json"
+      }
+    }
+  }
+}
