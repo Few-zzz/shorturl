@@ -1,124 +1,203 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Short URL
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+ระบบย่อลิงก์พร้อม QR Code และสถิติการคลิก พัฒนาด้วย **Node.js** (framework NestJS) ในรูปแบบ **Microservice** 4 ตัว เชื่อมต่อฐานข้อมูล **PostgreSQL** และ **MongoDB**
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## ลิงก์ใช้งานจริง
 
-## Description
+**https://fewz-surl.onrender.com**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+ระบบอยู่บน free host ซึ่งจะพัก service เมื่อไม่มีผู้ใช้ 15 นาที การเปิดครั้งแรกหลังพักอาจใช้เวลา 1–2 นาที และคอลัมน์ "คลิก" อาจแสดง `–` ชั่วครู่ระหว่างที่ service สถิติกำลังเริ่มทำงาน กด "รีเฟรช" อีกครั้งจะแสดงตัวเลข
 
-## Project setup
+## เทียบกับโจทย์
 
-```bash
-$ npm install
+| ข้อกำหนด | สิ่งที่ทำ |
+|---|---|
+| พัฒนาด้วย NodeJS | ทุก service รันบน Node.js 24 ใช้ framework NestJS |
+| เชื่อมต่อฐานข้อมูล MySQL, MSSQL, PostgreSQL หรือ MongoDB | PostgreSQL เก็บลิงก์ และ MongoDB เก็บประวัติการคลิก |
+| เข้าผ่าน URL ได้ บน Free Host | https://fewz-surl.onrender.com (Render แบบ free) |
+| ทำเป็น Microservice | 4 service แยกกัน deploy และเรียกกันผ่าน HTTP |
+| Architecture Diagram | อยู่ในหัวข้อถัดไป |
+
+## Architecture Diagram
+
+### ภาพรวมระบบ
+
+```mermaid
+flowchart TB
+    user["ผู้ใช้<br/>Browser / มือถือสแกน QR"]
+
+    subgraph render["Render (Free Web Services, Singapore)"]
+        gateway["<b>Gateway</b><br/>fewz-surl<br/>หน้าเว็บ, API, QR Code"]
+        link["<b>Link Service</b><br/>fewz-surl-link<br/>สร้างและค้นลิงก์"]
+        redirect["<b>Redirect Service</b><br/>fewz-surl-redirect<br/>ค้นรหัสแล้วตอบ 302"]
+        analytics["<b>Analytics Service</b><br/>fewz-surl-analytics<br/>บันทึกและสรุปการคลิก"]
+    end
+
+    postgres[("<b>PostgreSQL</b><br/>Neon<br/>ตาราง links")]
+    mongo[("<b>MongoDB</b><br/>Atlas<br/>collection clicks")]
+
+    user -- "HTTPS" --> gateway
+    gateway -- "POST /links, GET /links" --> link
+    gateway -- "GET /:code" --> redirect
+    gateway -- "GET /stats" --> analytics
+    redirect -. "POST /clicks (ไม่รอผล)" .-> analytics
+
+    link -- "อ่าน / เขียน" --> postgres
+    redirect -- "อ่าน" --> postgres
+    analytics -- "อ่าน / เขียน" --> mongo
 ```
 
-## Compile and run the project
+ผู้ใช้ติดต่อกับ Gateway เพียงจุดเดียว ส่วนอีก 3 service ทำงานอยู่ข้างหลัง
 
-```bash
-# development
-$ npm run start
+### ลำดับการทำงานเมื่อเปิดลิงก์สั้น
 
-# watch mode
-$ npm run start:dev
+```mermaid
+sequenceDiagram
+    actor U as ผู้ใช้
+    participant G as Gateway
+    participant R as Redirect Service
+    participant P as PostgreSQL
+    participant A as Analytics Service
+    participant M as MongoDB
 
-# production mode
-$ npm run start:prod
+    U->>G: GET /abc123
+    G->>R: GET /abc123
+    R->>P: ค้นหารหัส abc123
+    P-->>R: URL ต้นทาง
+    R-)A: POST /clicks (ไม่รอผล)
+    R-->>G: 302 Location: URL ต้นทาง
+    G-->>U: 302 Location: URL ต้นทาง
+    A->>M: บันทึกการคลิก
 ```
 
-## Run tests
+Redirect Service ส่งข้อมูลการคลิกให้ Analytics Service โดยไม่รอผล ผู้ใช้จึงถูกส่งไปยังปลายทางทันที และถ้า Analytics Service หรือ MongoDB ขัดข้อง ลิงก์สั้นยังใช้งานได้ตามปกติ
+
+## Service ทั้ง 4 ตัว
+
+| Service | โฟลเดอร์ | Port บนเครื่อง | URL บน Render | ฐานข้อมูล |
+|---|---|---|---|---|
+| Gateway | `apps/shorturl` | 3000 | https://fewz-surl.onrender.com | ไม่มี |
+| Link Service | `apps/link-service` | 3001 | https://fewz-surl-link.onrender.com | PostgreSQL |
+| Redirect Service | `apps/redirect-service` | 3002 | https://fewz-surl-redirect.onrender.com | PostgreSQL (อ่านอย่างเดียว) |
+| Analytics Service | `apps/analytics-service` | 3003 | https://fewz-surl-analytics.onrender.com | MongoDB |
+
+- **Gateway** เป็นจุดเข้าเดียวของระบบ ส่งหน้าเว็บ รับ request แล้วเรียก service ที่เกี่ยวข้อง รวมข้อมูลลิงก์กับจำนวนคลิกจาก 2 service เป็นคำตอบเดียว และสร้าง QR Code
+- **Link Service** สร้างลิงก์สั้น ตรวจสอบ URL และชื่อที่กำหนดเอง และสุ่มรหัส 6 ตัวอักษรที่ไม่ซ้ำ
+- **Redirect Service** ทำหน้าที่เดียวคือค้นรหัสแล้วตอบ 302 จึงทำงานเร็วและขยายแยกจากส่วนอื่นได้
+- **Analytics Service** บันทึกการคลิกทุกครั้ง และสรุปจำนวนคลิกของแต่ละลิงก์
+
+## ฐานข้อมูล
+
+| | PostgreSQL (Neon) | MongoDB (Atlas) |
+|---|---|---|
+| เก็บอะไร | ลิงก์: รหัสสั้นคู่กับ URL ต้นทาง | ประวัติการคลิก: รหัส, เวลา, referrer, user agent |
+| โครงสร้าง | ตาราง `links` (id, code, original_url, created_at) | collection `clicks` หนึ่งเอกสารต่อหนึ่งคลิก |
+| เหตุผลที่เลือก | โครงสร้างตายตัว และบังคับให้รหัสห้ามซ้ำได้ในฐานข้อมูล | ข้อมูลแบบ log ที่เพิ่มขึ้นเรื่อยๆ บางช่องอาจไม่มีค่า และเพิ่มช่องใหม่ได้โดยไม่ต้องแก้โครงสร้าง |
+
+แยกฐานข้อมูลตามหลักของ microservice ที่ให้แต่ละส่วนดูแลข้อมูลของตัวเอง ถ้า MongoDB ขัดข้อง การย่อลิงก์และการเปิดลิงก์สั้นยังทำงานได้ มีเพียงสถิติที่ใช้ไม่ได้ชั่วคราว
+
+## ฟีเจอร์
+
+- ย่อลิงก์เป็นรหัสสุ่ม 6 ตัวอักษร
+- กำหนดชื่อลิงก์เองได้ (3–10 ตัวอักษร: a-z, A-Z, 0-9, `_`, `-`)
+- สร้าง QR Code ของลิงก์สั้น แสดงบนหน้าเว็บและดาวน์โหลดเป็น PNG ได้ การสแกน QR ถูกนับเป็นการคลิกด้วย
+- แสดงรายการลิงก์ล่าสุดพร้อมจำนวนคลิก
+- รองรับโหมดสว่างและโหมดมืดตามการตั้งค่าของอุปกรณ์
+
+## API ของ Gateway
+
+| Method | Path | หน้าที่ |
+|---|---|---|
+| GET | `/` | หน้าเว็บ |
+| POST | `/api/links` | สร้างลิงก์สั้น รับ JSON `{ "url": "...", "alias": "..." }` โดย `alias` ไม่บังคับ |
+| GET | `/api/links` | รายการลิงก์ล่าสุด 100 รายการ พร้อมจำนวนคลิก |
+| GET | `/api/stats/:code` | จำนวนคลิกและ 20 คลิกล่าสุดของลิงก์ |
+| GET | `/api/qr/:code` | QR Code แบบ SVG เพิ่ม `?format=png` เพื่อดาวน์โหลดเป็น PNG |
+| GET | `/:code` | ส่งต่อไปยัง URL ต้นทาง (302) |
+
+ตัวอย่างการสร้างลิงก์:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+curl -X POST https://fewz-surl.onrender.com/api/links \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.example.com"}'
 ```
 
-## Deployment
+## ความปลอดภัย
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| ความเสี่ยง | การป้องกัน |
+|---|---|
+| แทรกสคริปต์ในหน้าเว็บ (XSS) | Content-Security-Policy อนุญาตเฉพาะสคริปต์และสไตล์ของหน้าเว็บเองโดยอ้างด้วยค่า hash และหน้าเว็บแสดงข้อมูลจากผู้ใช้ด้วย `textContent` |
+| ลิงก์อันตราย เช่น `javascript:` | รับเฉพาะ URL ที่ขึ้นต้นด้วย `http://` หรือ `https://` |
+| ข้อมูลขนาดใหญ่เกิน | จำกัด URL ไม่เกิน 2048 ตัวอักษร |
+| รหัสรูปแบบผิดปกติ | Gateway ตรวจรูปแบบรหัสก่อนส่งต่อ ถ้าไม่ตรงตอบ 404 ทันที |
+| ใช้ระบบสร้าง QR ของข้อความอื่น | สร้าง QR ให้เฉพาะรหัสที่มีอยู่จริงในฐานข้อมูล |
+| ปลอม Host header ให้ QR ชี้ไปโดเมนอื่น | ใช้โดเมนจากค่าตั้งค่าของ server เท่านั้น |
+| SQL / NoSQL Injection | ใช้ TypeORM และ Mongoose ซึ่งส่งค่าแบบ parameter ไม่ต่อข้อความคำสั่งเอง |
+| นำหน้าเว็บไปซ้อนในเว็บอื่น (Clickjacking) | header `X-Frame-Options: DENY` และ `frame-ancestors 'none'` |
+| รหัสผ่านฐานข้อมูลรั่ว | เก็บในตัวแปรสภาพแวดล้อม ไม่อยู่ใน repository |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## วิธีรันบนเครื่อง
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+ต้องมี Node.js 24, ฐานข้อมูล PostgreSQL และ MongoDB
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+1. ติดตั้ง library
 
-## Observability
+   ```bash
+   npm install
+   ```
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+2. สร้างตารางใน PostgreSQL
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+   ```sql
+   CREATE TABLE links (
+     id           SERIAL PRIMARY KEY,
+     code         VARCHAR(10) NOT NULL UNIQUE,
+     original_url TEXT NOT NULL,
+     created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+   );
+   ```
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+   MongoDB ไม่ต้องสร้างอะไรล่วงหน้า collection `clicks` จะถูกสร้างเมื่อมีการคลิกครั้งแรก
 
-To add it to this project:
+3. คัดลอก `.env.example` เป็น `.env` แล้วใส่ค่า `DATABASE_URL` และ `MONGODB_URI`
 
-```bash
-$ npm install @nestjs/observe
-```
+4. รันทั้ง 4 service คนละหน้าต่าง
 
-Then follow the [setup guide](https://docs.nestjs.com/observability/overview) - it takes a single import and an app key.
+   ```bash
+   npx nest start shorturl --watch
+   npx nest start link-service --watch
+   npx nest start redirect-service --watch
+   npx nest start analytics-service --watch
+   ```
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+5. เปิด http://localhost:3000
 
-## Resources
+## วิธี deploy
 
-Check out a few resources that may come in handy when working with NestJS:
+ไฟล์ [render.yaml](render.yaml) กำหนด service ทั้ง 4 ตัวไว้แล้ว
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+1. ที่ Render เลือก **New** → **Blueprint** แล้วเลือก repository นี้
+2. กรอก `DATABASE_URL` ของ `fewz-surl-link` และ `fewz-surl-redirect` และ `MONGODB_URI` ของ `fewz-surl-analytics`
+3. กด **Deploy Blueprint**
 
-## Support
+หลังจากนั้นทุกครั้งที่ push ขึ้น branch `master` Render จะ build และ deploy ใหม่ให้อัตโนมัติ เฉพาะ service ที่โค้ดเปลี่ยน
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## เทคโนโลยีที่ใช้
 
-## Stay in touch
+| ส่วน | เทคโนโลยี |
+|---|---|
+| Runtime | Node.js 24 |
+| Framework | NestJS 12 (TypeScript) |
+| ฐานข้อมูล | PostgreSQL (Neon) ผ่าน TypeORM, MongoDB (Atlas) ผ่าน Mongoose |
+| QR Code | library `qrcode` |
+| หน้าเว็บ | HTML, CSS และ JavaScript ไม่ใช้ framework ฝั่ง browser |
+| Host | Render (Free Web Service) |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## ข้อจำกัดที่ทราบ
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- **ไม่มีการจำกัดจำนวนการสร้างลิงก์ต่อผู้ใช้ (rate limit)** จึงอาจถูกส่งคำขอจำนวนมากได้
+- **ไม่ตรวจว่า URL ต้นทางเป็นเว็บอันตรายหรือไม่** การตรวจต้องใช้บริการภายนอก
+- **Service ข้างหลังทั้ง 3 ตัวมี URL สาธารณะ** เพราะ service แบบ free ของ Render รับการเชื่อมต่อผ่านเครือข่ายภายในไม่ได้ ผู้ที่รู้ URL จึงเรียกได้โดยไม่ผ่าน Gateway
+- **การคลิกในช่วงที่ Analytics Service หรือ MongoDB ขัดข้องจะไม่ถูกบันทึก** เพราะไม่มีระบบคิวสำหรับส่งซ้ำ
+- **การเปิดครั้งแรกหลัง service พักใช้เวลา 1–2 นาที** ตามเงื่อนไขของ free host
