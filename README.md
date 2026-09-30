@@ -72,6 +72,44 @@ sequenceDiagram
 
 Redirect Service ส่งข้อมูลการคลิกให้ Analytics Service โดยไม่รอผล ผู้ใช้จึงถูกส่งไปยังปลายทางทันที และถ้า Analytics Service หรือ MongoDB ขัดข้อง ลิงก์สั้นยังใช้งานได้ตามปกติ
 
+## Data Flow Diagram (DFD Level 0)
+
+แสดงกระบวนการหลัก 5 กระบวนการ แหล่งเก็บข้อมูล 2 แหล่ง และข้อมูลที่ไหลระหว่างกัน
+
+![Data Flow Diagram Level 0 ของระบบ Short URL](docs/dfd-level-0.svg)
+
+| กระบวนการ | Service ที่รับผิดชอบ |
+|---|---|
+| 1.0 ย่อลิงก์ | Gateway และ Link Service |
+| 2.0 เปิดลิงก์สั้น | Gateway และ Redirect Service |
+| 3.0 บันทึกการคลิก | Analytics Service |
+| 4.0 แสดงรายการและสถิติ | Gateway, Link Service และ Analytics Service |
+| 5.0 สร้าง QR Code | Gateway และ Link Service |
+
+## ER Diagram
+
+```mermaid
+erDiagram
+    LINKS ||--o{ CLICKS : "ถูกคลิก"
+
+    LINKS {
+        int id PK "เลขลำดับอัตโนมัติ"
+        varchar code UK "รหัสสั้น ยาวไม่เกิน 10 ตัว"
+        text original_url "URL ต้นทาง"
+        timestamptz created_at "เวลาที่สร้าง"
+    }
+
+    CLICKS {
+        ObjectId _id PK "สร้างโดย MongoDB"
+        string code "รหัสสั้นที่ถูกคลิก"
+        string referrer "เว็บที่ผู้ใช้กดลิงก์มา (อาจไม่มี)"
+        string userAgent "browser ของผู้ใช้ (อาจไม่มี)"
+        date clickedAt "เวลาที่คลิก"
+    }
+```
+
+`LINKS` อยู่ใน PostgreSQL และ `CLICKS` อยู่ใน MongoDB ลิงก์หนึ่งรายการมีการคลิกได้ตั้งแต่ศูนย์ครั้งขึ้นไป ทั้งสองเชื่อมกันด้วยค่า `code` ความสัมพันธ์นี้เป็นความสัมพันธ์เชิงตรรกะ ไม่มี foreign key บังคับ เพราะข้อมูลอยู่คนละฐานข้อมูลตามหลักของ microservice
+
 ## Service ทั้ง 4 ตัว
 
 | Service | โฟลเดอร์ | Port บนเครื่อง | URL บน Render | ฐานข้อมูล |
@@ -127,7 +165,7 @@ curl -X POST https://fewz-surl.onrender.com/api/links \
 
 | ความเสี่ยง | การป้องกัน |
 |---|---|
-| แทรกสคริปต์ในหน้าเว็บ (XSS) | Content-Security-Policy อนุญาตเฉพาะสคริปต์และสไตล์ของหน้าเว็บเองโดยอ้างด้วยค่า hash และหน้าเว็บแสดงข้อมูลจากผู้ใช้ด้วย `textContent` |
+| แทรกสคริปต์ในหน้าเว็บ (XSS) | Content-Security-Policy อนุญาตเฉพาะไฟล์สคริปต์และสไตล์จากโดเมนของระบบเอง สคริปต์ที่ถูกแทรกเข้ามาจะไม่ถูกรัน และหน้าเว็บแสดงข้อมูลจากผู้ใช้ด้วย `textContent` |
 | ลิงก์อันตราย เช่น `javascript:` | รับเฉพาะ URL ที่ขึ้นต้นด้วย `http://` หรือ `https://` |
 | ข้อมูลขนาดใหญ่เกิน | จำกัด URL ไม่เกิน 2048 ตัวอักษร |
 | รหัสรูปแบบผิดปกติ | Gateway ตรวจรูปแบบรหัสก่อนส่งต่อ ถ้าไม่ตรงตอบ 404 ทันที |
@@ -191,7 +229,7 @@ curl -X POST https://fewz-surl.onrender.com/api/links \
 | Framework | NestJS 12 (TypeScript) |
 | ฐานข้อมูล | PostgreSQL (Neon) ผ่าน TypeORM, MongoDB (Atlas) ผ่าน Mongoose |
 | QR Code | library `qrcode` |
-| หน้าเว็บ | HTML, CSS และ JavaScript ไม่ใช้ framework ฝั่ง browser |
+| หน้าเว็บ | HTML, CSS และ JavaScript ในโฟลเดอร์ `apps/shorturl/public` ไม่ใช้ framework ฝั่ง browser |
 | Host | Render (Free Web Service) |
 
 ## ข้อจำกัดที่ทราบ

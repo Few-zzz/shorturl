@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Short URL</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <header class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <span>Short URL</span>
+    </header>
+
+    <section class="hero">
+      <h1>ย่อลิงก์ให้สั้น</h1>
+      <p>วางลิงก์ยาว รับลิงก์สั้นพร้อม QR Code และดูจำนวนคลิกได้ทันที</p>
+    </section>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label class="sr-only" for="url">URL ที่ต้องการย่อ</label>
+        <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/some/long/path" maxlength="2048" required>
+        <button id="submit" class="primary" type="submit">ย่อลิงก์</button>
+      </div>
+
+      <div class="alias">
+        <label for="alias">ชื่อที่กำหนดเอง <span class="optional">ไม่บังคับ</span></label>
+        <div class="alias-input">
+          <span id="alias-prefix" class="prefix"></span>
+          <input id="alias" type="text" autocomplete="off" placeholder="my-link" maxlength="10">
+        </div>
+      </div>
+
+      <p id="error" class="error" role="alert" hidden></p>
+    </form>
+
+    <section id="result" class="result" aria-live="polite" hidden>
+      <img id="qr-image" class="qr" alt="QR Code ของลิงก์สั้น" width="132" height="132">
+      <div class="result-body">
+        <p class="eyebrow">ลิงก์สั้นของคุณ</p>
+        <a id="result-link" class="short-link" target="_blank" rel="noopener noreferrer"></a>
+        <div class="actions">
+          <button id="copy" class="ghost" type="button">คัดลอก</button>
+          <a id="qr-download" class="ghost">ดาวน์โหลด QR</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="list">
+      <div class="list-head">
+        <h2>ลิงก์ล่าสุด</h2>
+        <button id="refresh" class="text" type="button">รีเฟรช</button>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ลิงก์สั้น</th>
+              <th>URL ต้นทาง</th>
+              <th class="num">คลิก</th>
+              <th class="date">สร้างเมื่อ</th>
+              <th><span class="sr-only">QR Code</span></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

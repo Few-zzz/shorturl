@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 730" width="1220" height="730" font-family="'Segoe UI', 'Noto Sans Thai', Tahoma, sans-serif">
+  <title>Data Flow Diagram Level 0 ของระบบ Short URL</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .flow { fill: none; stroke: #334155; stroke-width: 1.6; marker-end: url(#arrow); }
+      .label { font-size: 13px; fill: #1e293b; text-anchor: middle; }
+      .entity { fill: #fef3c7; stroke: #92400e; stroke-width: 1.8; }
+      .process { fill: #dbeafe; stroke: #1d4ed8; stroke-width: 1.8; }
+      .store { fill: #dcfce7; stroke: #166534; stroke-width: 1.8; }
+      .name { font-size: 15px; font-weight: 600; fill: #0f172a; text-anchor: middle; }
+      .num { font-size: 14px; font-weight: 700; fill: #1d4ed8; text-anchor: middle; }
+      .sid { font-size: 14px; font-weight: 700; fill: #166534; text-anchor: middle; }
+      .legend { font-size: 13px; fill: #475569; }
+    </style>
+  </defs>
+
+  <rect width="1220" height="730" fill="#ffffff"/>
+
+  <!-- ผู้สร้างลิงก์ กับ 1.0 ย่อลิงก์ -->
+  <path class="flow" d="M130,210 V78 H423"/>
+  <text class="label" x="276" y="70">URL ต้นทาง, ชื่อที่กำหนดเอง</text>
+  <path class="flow" d="M423,102 H160 V210"/>
+  <text class="label" x="291" y="120">ลิงก์สั้น</text>
+
+  <!-- ผู้สร้างลิงก์ กับ 5.0 สร้าง QR Code -->
+  <path class="flow" d="M190,228 H423"/>
+  <text class="label" x="306" y="220">รหัสสั้น</text>
+  <path class="flow" d="M423,252 H190"/>
+  <text class="label" x="306" y="270">รูป QR Code</text>
+
+  <!-- ผู้สร้างลิงก์ กับ 4.0 แสดงรายการและสถิติ -->
+  <path class="flow" d="M160,270 V378 H423"/>
+  <text class="label" x="291" y="370">คำขอดูรายการ</text>
+  <path class="flow" d="M423,402 H130 V270"/>
+  <text class="label" x="276" y="420">รายการลิงก์พร้อมจำนวนคลิก</text>
+
+  <!-- ผู้เปิดลิงก์ กับ 2.0 เปิดลิงก์สั้น -->
+  <path class="flow" d="M190,548 H423"/>
+  <text class="label" x="306" y="540">รหัสสั้น</text>
+  <path class="flow" d="M423,572 H190"/>
+  <text class="label" x="306" y="590">ส่งต่อไป URL ต้นทาง</text>
+
+  <!-- 1.0 กับ D1 -->
+  <path class="flow" d="M537,78 H1100 V215"/>
+  <text class="label" x="800" y="70">ข้อมูลลิงก์ใหม่</text>
+  <path class="flow" d="M1040,215 V102 H537"/>
+  <text class="label" x="780" y="120">ผลตรวจรหัสซ้ำ</text>
+
+  <!-- D1 ไป 5.0 -->
+  <path class="flow" d="M950,240 H538"/>
+  <text class="label" x="744" y="232">ยืนยันว่ารหัสมีอยู่จริง</text>
+
+  <!-- D1 ไป 4.0 -->
+  <path class="flow" d="M1000,265 V378 H537"/>
+  <text class="label" x="760" y="370">รายการลิงก์</text>
+
+  <!-- D2 ไป 4.0 -->
+  <path class="flow" d="M1120,535 V402 H537"/>
+  <text class="label" x="760" y="420">จำนวนคลิก</text>
+
+  <!-- D1 ไป 2.0 -->
+  <path class="flow" d="M1170,240 H1195 V655 H480 V618"/>
+  <text class="label" x="830" y="647">URL ต้นทาง</text>
+
+  <!-- 2.0 ไป 3.0 ไป D2 -->
+  <path class="flow" d="M538,560 H742"/>
+  <text class="label" x="640" y="552">รหัส, referrer, user agent</text>
+  <path class="flow" d="M858,560 H950"/>
+  <text class="label" x="904" y="524">ข้อมูล</text>
+  <text class="label" x="904" y="542">การคลิก</text>
+
+  <!-- External entities -->
+  <rect class="entity" x="30" y="210" width="160" height="60"/>
+  <text class="name" x="110" y="246">ผู้สร้างลิงก์</text>
+  <rect class="entity" x="30" y="530" width="160" height="60"/>
+  <text class="name" x="110" y="566">ผู้เปิดลิงก์</text>
+
+  <!-- Processes -->
+  <circle class="process" cx="480" cy="90" r="58"/>
+  <text class="num" x="480" y="78">1.0</text>
+  <text class="name" x="480" y="102">ย่อลิงก์</text>
+
+  <circle class="process" cx="480" cy="240" r="58"/>
+  <text class="num" x="480" y="222">5.0</text>
+  <text class="name" x="480" y="244">สร้าง</text>
+  <text class="name" x="480" y="264">QR Code</text>
+
+  <circle class="process" cx="480" cy="390" r="58"/>
+  <text class="num" x="480" y="372">4.0</text>
+  <text class="name" x="480" y="394">แสดงรายการ</text>
+  <text class="name" x="480" y="414">และสถิติ</text>
+
+  <circle class="process" cx="480" cy="560" r="58"/>
+  <text class="num" x="480" y="548">2.0</text>
+  <text class="name" x="480" y="572">เปิดลิงก์สั้น</text>
+
+  <circle class="process" cx="800" cy="560" r="58"/>
+  <text class="num" x="800" y="542">3.0</text>
+  <text class="name" x="800" y="564">บันทึก</text>
+  <text class="name" x="800" y="584">การคลิก</text>
+
+  <!-- Data stores -->
+  <rect class="store" x="950" y="215" width="220" height="50"/>
+  <line x1="995" y1="215" x2="995" y2="265" stroke="#166534" stroke-width="1.8"/>
+  <text class="sid" x="972" y="245">D1</text>
+  <text class="name" x="1083" y="236">links</text>
+  <text class="label" x="1083" y="255">PostgreSQL</text>
+
+  <rect class="store" x="950" y="535" width="220" height="50"/>
+  <line x1="995" y1="535" x2="995" y2="585" stroke="#166534" stroke-width="1.8"/>
+  <text class="sid" x="972" y="565">D2</text>
+  <text class="name" x="1083" y="556">clicks</text>
+  <text class="label" x="1083" y="575">MongoDB</text>
+
+  <!-- Legend -->
+  <rect class="entity" x="30" y="692" width="26" height="18"/>
+  <text class="legend" x="64" y="706">ผู้เกี่ยวข้องภายนอก (External Entity)</text>
+  <circle class="process" cx="333" cy="701" r="10"/>
+  <text class="legend" x="351" y="706">กระบวนการ (Process)</text>
+  <rect class="store" x="520" y="692" width="26" height="18"/>
+  <text class="legend" x="554" y="706">แหล่งเก็บข้อมูล (Data Store)</text>
+  <path class="flow" d="M760,701 H800"/>
+  <text class="legend" x="808" y="706">การไหลของข้อมูล (Data Flow)</text>
+</svg>

@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Header,
   Headers,
   Param,
   Post,
@@ -11,18 +10,11 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { AppService, NOT_FOUND } from './app.service';
-import { PAGE_CSP, PAGE_HTML } from './page';
 
+// หน้าเว็บ (/, /style.css, /app.js) ส่งจากโฟลเดอร์ public ซึ่งตั้งค่าไว้ใน main.ts
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
-
-  @Get()
-  @Header('Content-Type', 'text/html; charset=utf-8')
-  @Header('Content-Security-Policy', PAGE_CSP)
-  page(): string {
-    return PAGE_HTML;
-  }
 
   @Post('api/links')
   async createLink(@Body() body: unknown, @Res() res: Response) {

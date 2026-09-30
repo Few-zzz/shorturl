@@ -1,0 +1,180 @@
+// ข้อมูลจาก server ทุกค่าแสดงผ่าน textContent เท่านั้น ห้ามใช้ innerHTML เพื่อป้องกัน XSS
+
+const form = document.getElementById('form');
+const urlInput = document.getElementById('url');
+const aliasInput = document.getElementById('alias');
+const submitButton = document.getElementById('submit');
+const errorBox = document.getElementById('error');
+const result = document.getElementById('result');
+const resultLink = document.getElementById('result-link');
+const copyButton = document.getElementById('copy');
+const qrImage = document.getElementById('qr-image');
+const qrDownload = document.getElementById('qr-download');
+const rows = document.getElementById('rows');
+const COLUMNS = 5;
+
+document.getElementById('alias-prefix').textContent = `${location.host}/`;
+
+function shortUrl(code) {
+  return `${location.origin}/${code}`;
+}
+
+function cell(text, className) {
+  const td = document.createElement('td');
+  if (className) {
+    td.className = className;
+  }
+  td.textContent = text;
+  return td;
+}
+
+function showError(text) {
+  errorBox.textContent = text;
+  errorBox.hidden = false;
+}
+
+function clearError() {
+  errorBox.hidden = true;
+}
+
+function errorText(data) {
+  if (data && data.message) {
+    return Array.isArray(data.message) ? data.message.join(', ') : data.message;
+  }
+  return 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+}
+
+function showResult(code) {
+  const url = shortUrl(code);
+  const qrPath = `/api/qr/${encodeURIComponent(code)}`;
+  resultLink.href = url;
+  resultLink.textContent = url.replace(/^https?:\/\//, '');
+  qrImage.src = qrPath;
+  qrDownload.href = `${qrPath}?format=png`;
+  copyButton.textContent = 'คัดลอก';
+  result.hidden = false;
+}
+
+function showEmpty(text) {
+  rows.textContent = '';
+  const tr = document.createElement('tr');
+  const td = cell(text, 'empty');
+  td.colSpan = COLUMNS;
+  tr.appendChild(td);
+  rows.appendChild(tr);
+}
+
+function linkRow(link) {
+  const tr = document.createElement('tr');
+
+  const code = document.createElement('td');
+  code.className = 'code';
+  const anchor = document.createElement('a');
+  anchor.href = shortUrl(link.code);
+  anchor.target = '_blank';
+  anchor.rel = 'noopener noreferrer';
+  anchor.textContent = `/${link.code}`;
+  code.appendChild(anchor);
+  tr.appendChild(code);
+
+  const original = cell(link.originalUrl, 'url');
+  original.title = link.originalUrl;
+  tr.appendChild(original);
+
+  const clicks = cell(link.clicks === null ? '–' : String(link.clicks), 'num');
+  if (link.clicks === null) {
+    clicks.title = 'ระบบสถิติไม่พร้อมใช้งานชั่วคราว';
+  }
+  tr.appendChild(clicks);
+
+  const created = new Date(link.createdAt).toLocaleDateString('th-TH', {
+    day: 'numeric',
+    month: 'short',
+    year: '2-digit',
+  });
+  tr.appendChild(cell(created, 'date'));
+
+  const qr = document.createElement('td');
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'ghost';
+  button.textContent = 'QR';
+  button.setAttribute('aria-label', `แสดง QR Code ของ ${link.code}`);
+  button.addEventListener('click', () => {
+    showResult(link.code);
+    result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  qr.appendChild(button);
+  tr.appendChild(qr);
+
+  return tr;
+}
+
+async function loadLinks() {
+  try {
+    const response = await fetch('/api/links');
+    const data = await response.json();
+    if (!response.ok) {
+      showEmpty(errorText(data));
+      return;
+    }
+    if (data.length === 0) {
+      showEmpty('ยังไม่มีลิงก์');
+      return;
+    }
+    rows.textContent = '';
+    data.forEach((link) => rows.appendChild(linkRow(link)));
+  } catch {
+    showEmpty('โหลดรายการไม่สำเร็จ');
+  }
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  clearError();
+
+  const url = urlInput.value.trim();
+  if (!url) {
+    showError('กรุณาใส่ URL ที่ต้องการย่อ');
+    urlInput.focus();
+    return;
+  }
+
+  const payload = { url };
+  const alias = aliasInput.value.trim();
+  if (alias) {
+    payload.alias = alias;
+  }
+
+  submitButton.disabled = true;
+  try {
+    const response = await fetch('/api/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      showResult(data.code);
+      form.reset();
+      loadLinks();
+    } else {
+      showError(errorText(data));
+    }
+  } catch {
+    showError('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่');
+  }
+  submitButton.disabled = false;
+});
+
+copyButton.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(resultLink.href);
+    copyButton.textContent = 'คัดลอกแล้ว';
+  } catch {
+    copyButton.textContent = 'คัดลอกไม่ได้';
+  }
+});
+
+document.getElementById('refresh').addEventListener('click', loadLinks);
+loadLinks();
