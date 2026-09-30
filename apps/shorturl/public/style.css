@@ -7,10 +7,29 @@
   --dot: rgba(0, 0, 0, 0.09);
   --error: #b42318;
   --focus: rgba(17, 17, 17, 0.14);
+  --show-sun: none;
+  --show-moon: block;
+  color-scheme: light;
+}
+
+/* ธีมมืดใช้ใน 2 กรณี: ผู้ใช้เลือกเอง (data-theme="dark")
+   หรือยังไม่ได้เลือกและอุปกรณ์ตั้งค่าเป็นโหมดมืด ค่าสีสองชุดด้านล่างต้องตรงกันเสมอ */
+:root[data-theme="dark"] {
+  --bg: #0d0d0d;
+  --surface: #151515;
+  --fg: #f3f3f3;
+  --muted: #9b9b9b;
+  --line: #272727;
+  --dot: rgba(255, 255, 255, 0.08);
+  --error: #ff8a80;
+  --focus: rgba(243, 243, 243, 0.18);
+  --show-sun: block;
+  --show-moon: none;
+  color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0d0d0d;
     --surface: #151515;
     --fg: #f3f3f3;
@@ -19,6 +38,9 @@
     --dot: rgba(255, 255, 255, 0.08);
     --error: #ff8a80;
     --focus: rgba(243, 243, 243, 0.18);
+    --show-sun: block;
+    --show-moon: none;
+    color-scheme: dark;
   }
 }
 
@@ -87,6 +109,40 @@ main {
   height: 10px;
   border-radius: 3px;
   background: var(--fg);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.theme-toggle:hover {
+  border-color: var(--fg);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-sun {
+  display: var(--show-sun);
+}
+
+.icon-moon {
+  display: var(--show-moon);
 }
 
 /* Hero */
