@@ -249,6 +249,7 @@ main {
 
 /* กรอบโปร่งแสงด้านนอก และการ์ดด้านใน */
 .shell {
+  margin-top: 72px;
   padding: 12px;
   background: var(--shell);
   border: 1px solid var(--shell-border);
@@ -745,7 +746,7 @@ input[type="color"]:focus-visible {
 /* จุดเด่นของระบบใต้การ์ด */
 .features {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   margin: 0;
   padding: 20px 8px 8px;
   list-style: none;
@@ -993,6 +994,10 @@ a.button-link {
 
 @media (max-width: 520px) {
   .hero {
+    margin-top: 40px;
+  }
+
+  .shell {
     margin-top: 40px;
   }
 
