@@ -10,6 +10,13 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <!-- วงแหวนตกแต่งพื้นหลัง วาดด้วย CSS ล้วน -->
+  <div class="backdrop" aria-hidden="true">
+    <span class="ring r1"></span>
+    <span class="ring r2"></span>
+    <span class="ring r3"></span>
+  </div>
+
   <main>
     <header class="topbar">
       <div class="brand">
@@ -28,98 +35,143 @@
     </header>
 
     <section class="hero">
-      <h1>ย่อลิงก์ให้สั้น</h1>
-      <p>วางลิงก์ยาว รับลิงก์สั้นพร้อม QR Code และดูจำนวนคลิกได้ทันที</p>
+      <h1>ย่อลิงก์ สร้าง QR และดูสถิติในที่เดียว</h1>
+      <p>วางลิงก์ยาว รับลิงก์สั้นพร้อม QR Code ที่ปรับแต่งได้ และดูจำนวนคลิกของทุกลิงก์</p>
     </section>
 
-    <form id="form" novalidate>
-      <div class="field">
-        <label class="sr-only" for="url">URL ที่ต้องการย่อ</label>
-        <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/some/long/path" maxlength="2048" required>
-        <button id="submit" class="primary" type="submit">ย่อลิงก์</button>
-      </div>
+    <div class="shell">
+      <div class="card">
+        <h2 class="step-title"><span class="step-num">1</span>วางลิงก์ยาว</h2>
 
-      <div class="alias">
-        <label for="alias">ชื่อที่กำหนดเอง <span class="optional">ไม่บังคับ</span></label>
-        <div class="alias-input">
-          <span id="alias-prefix" class="prefix"></span>
-          <input id="alias" type="text" autocomplete="off" placeholder="my-link" maxlength="10">
-        </div>
-      </div>
-
-      <!-- ตัวเลือกเสริม: ช่องกรอกจะแสดงเมื่อติ๊กเลือกเท่านั้น -->
-      <div class="options">
-        <label class="check"><input id="use-expiry" type="checkbox"> กำหนดวันหมดอายุ</label>
-        <label class="check"><input id="use-password" type="checkbox"> ตั้งรหัสผ่าน</label>
-      </div>
-
-      <div id="expiry-field" class="option-field" hidden>
-        <label for="expiry">หมดอายุเมื่อ</label>
-        <div class="alias-input">
-          <input id="expiry" type="datetime-local">
-        </div>
-      </div>
-
-      <div id="password-field" class="option-field" hidden>
-        <label for="password">รหัสผ่านสำหรับเปิดลิงก์</label>
-        <div class="alias-input">
-          <input id="password" type="password" autocomplete="new-password" minlength="4" maxlength="64" placeholder="4-64 ตัวอักษร">
-        </div>
-      </div>
-
-      <p id="error" class="error" role="alert" hidden></p>
-    </form>
-
-    <section id="result" class="result" aria-live="polite" hidden>
-      <img id="qr-image" class="qr" alt="QR Code ของลิงก์สั้น" width="132">
-      <div class="result-body">
-        <p class="eyebrow">ลิงก์สั้นของคุณ</p>
-        <a id="result-link" class="short-link" target="_blank" rel="noopener noreferrer"></a>
-        <div class="actions">
-          <button id="copy" class="ghost" type="button">คัดลอก</button>
-          <button id="qr-download" class="ghost" type="button">ดาวน์โหลด PNG</button>
-          <a id="qr-download-svg" class="ghost" download>SVG</a>
-        </div>
-      </div>
-
-      <details class="qr-custom">
-        <summary>ปรับแต่ง QR Code</summary>
-        <div class="custom-grid">
-          <fieldset>
-            <legend>รูปร่างจุด</legend>
-            <div class="chips">
-              <label class="chip"><input type="radio" name="qr-shape" value="square" checked><span>สี่เหลี่ยม</span></label>
-              <label class="chip"><input type="radio" name="qr-shape" value="rounded"><span>มุมมน</span></label>
-              <label class="chip"><input type="radio" name="qr-shape" value="dots"><span>วงกลม</span></label>
+        <form id="form" novalidate>
+          <div class="url-row">
+            <div class="field">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/>
+                <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>
+              </svg>
+              <label class="sr-only" for="url">URL ที่ต้องการย่อ</label>
+              <input id="url" type="url" inputmode="url" autocomplete="off" placeholder="ใส่ลิงก์ของคุณที่นี่" maxlength="2048" required>
+              <button id="url-clear" class="clear" type="button" aria-label="ล้างลิงก์" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18"/>
+                </svg>
+              </button>
             </div>
-          </fieldset>
+            <button id="submit" class="primary" type="submit">ย่อ URL</button>
+          </div>
 
-          <fieldset>
-            <legend>สี</legend>
-            <div class="colors">
-              <label>สีจุด <input id="qr-fg" type="color" value="#000000"></label>
-              <label>สีพื้นหลัง <input id="qr-bg" type="color" value="#ffffff"></label>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>กรอบ</legend>
-            <div class="frame-row">
-              <label class="check"><input id="qr-frame" type="checkbox"> เพิ่มกรอบพร้อมข้อความ</label>
-              <div id="qr-label-field" class="alias-input" hidden>
-                <label class="sr-only" for="qr-label">ข้อความในกรอบ</label>
-                <input id="qr-label" type="text" maxlength="24" placeholder="สแกนเลย">
+          <div class="more">
+            <div class="alias">
+              <label for="alias">ชื่อที่กำหนดเอง <span class="optional">ไม่บังคับ</span></label>
+              <div class="alias-input">
+                <span id="alias-prefix" class="prefix"></span>
+                <input id="alias" type="text" autocomplete="off" placeholder="my-link" maxlength="10">
               </div>
             </div>
-          </fieldset>
 
-          <p id="qr-warning" class="error" role="alert" hidden></p>
-          <div>
-            <button id="qr-reset" class="text" type="button">คืนค่าเริ่มต้น</button>
+            <!-- ตัวเลือกเสริม: ช่องกรอกจะแสดงเมื่อติ๊กเลือกเท่านั้น -->
+            <div class="options">
+              <label class="check"><input id="use-expiry" type="checkbox"> กำหนดวันหมดอายุ</label>
+              <label class="check"><input id="use-password" type="checkbox"> ตั้งรหัสผ่าน</label>
+            </div>
           </div>
+
+          <div id="expiry-field" class="option-field" hidden>
+            <label for="expiry">หมดอายุเมื่อ</label>
+            <div class="alias-input">
+              <input id="expiry" type="datetime-local">
+            </div>
+          </div>
+
+          <div id="password-field" class="option-field" hidden>
+            <label for="password">รหัสผ่านสำหรับเปิดลิงก์</label>
+            <div class="alias-input">
+              <input id="password" type="password" autocomplete="new-password" minlength="4" maxlength="64" placeholder="4-64 ตัวอักษร">
+            </div>
+          </div>
+
+          <p id="error" class="error" role="alert" hidden></p>
+        </form>
+
+        <div class="divider" aria-hidden="true">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </span>
         </div>
-      </details>
-    </section>
+
+        <h2 class="step-title"><span class="step-num">2</span>ลิงก์สั้นของคุณ</h2>
+
+        <div id="result-empty" class="result-empty">
+          ลิงก์สั้นและ QR Code จะแสดงที่นี่หลังจากกด "ย่อ URL"
+        </div>
+
+        <section id="result" class="result" aria-live="polite" hidden>
+          <img id="qr-image" class="qr" alt="QR Code ของลิงก์สั้น" width="140">
+          <div class="result-body">
+            <a id="result-link" class="short-link" target="_blank" rel="noopener noreferrer"></a>
+            <div class="actions">
+              <button id="copy" class="ghost" type="button">คัดลอก</button>
+              <button id="qr-download" class="ghost" type="button">ดาวน์โหลด PNG</button>
+              <a id="qr-download-svg" class="ghost" download>SVG</a>
+            </div>
+          </div>
+
+          <details class="qr-custom">
+            <summary>ปรับแต่ง QR Code</summary>
+            <div class="custom-grid">
+              <fieldset>
+                <legend>รูปร่างจุด</legend>
+                <div class="chips">
+                  <label class="chip"><input type="radio" name="qr-shape" value="square" checked><span>สี่เหลี่ยม</span></label>
+                  <label class="chip"><input type="radio" name="qr-shape" value="rounded"><span>มุมมน</span></label>
+                  <label class="chip"><input type="radio" name="qr-shape" value="dots"><span>วงกลม</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>สี</legend>
+                <div class="colors">
+                  <label>สีจุด <input id="qr-fg" type="color" value="#000000"></label>
+                  <label>สีพื้นหลัง <input id="qr-bg" type="color" value="#ffffff"></label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>กรอบ</legend>
+                <div class="frame-row">
+                  <label class="check"><input id="qr-frame" type="checkbox"> เพิ่มกรอบพร้อมข้อความ</label>
+                  <div id="qr-label-field" class="alias-input" hidden>
+                    <label class="sr-only" for="qr-label">ข้อความในกรอบ</label>
+                    <input id="qr-label" type="text" maxlength="24" placeholder="สแกนเลย">
+                  </div>
+                </div>
+              </fieldset>
+
+              <p id="qr-warning" class="error" role="alert" hidden></p>
+              <div>
+                <button id="qr-reset" class="text" type="button">คืนค่าเริ่มต้น</button>
+              </div>
+            </div>
+          </details>
+        </section>
+      </div>
+
+      <ul class="features">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+          <div><strong>ไม่ต้องลงทะเบียน</strong><span>วางลิงก์แล้วใช้ได้ทันที</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <div><strong>ควบคุมการเข้าถึงได้</strong><span>ตั้งรหัสผ่านและวันหมดอายุของลิงก์</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v.01M14 21h3M21 18v3h-3"/></svg>
+          <div><strong>QR Code ปรับแต่งได้</strong><span>เลือกรูปร่างจุด สี และกรอบ</span></div>
+        </li>
+      </ul>
+    </div>
 
     <section class="list">
       <div class="list-head">

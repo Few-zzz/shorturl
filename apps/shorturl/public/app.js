@@ -19,6 +19,18 @@ const COLUMNS = 5;
 
 document.getElementById('alias-prefix').textContent = `${location.host}/`;
 
+// ปุ่มล้างลิงก์ในช่อง URL แสดงเมื่อมีข้อความเท่านั้น
+const urlClear = document.getElementById('url-clear');
+function syncUrlClear() {
+  urlClear.hidden = urlInput.value === '';
+}
+urlInput.addEventListener('input', syncUrlClear);
+urlClear.addEventListener('click', () => {
+  urlInput.value = '';
+  syncUrlClear();
+  urlInput.focus();
+});
+
 // ค่าเวลาในรูปแบบที่ช่อง datetime-local ใช้ (เวลาท้องถิ่นของผู้ใช้)
 function localDateTime(date) {
   const pad = (n) => String(n).padStart(2, '0');
@@ -92,6 +104,7 @@ function showResult(code) {
   // รูป QR และปุ่มดาวน์โหลดจัดการใน qr-custom.js ตามการปรับแต่งที่เลือกไว้
   window.qrCustom.setCode(code);
   copyButton.textContent = 'คัดลอก';
+  document.getElementById('result-empty').hidden = true;
   result.hidden = false;
 }
 
@@ -283,6 +296,7 @@ form.addEventListener('submit', async (event) => {
     if (response.ok) {
       showResult(data.code);
       form.reset();
+      syncUrlClear();
       syncOptions();
       loadLinks();
     } else {
