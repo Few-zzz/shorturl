@@ -8,8 +8,6 @@ const errorBox = document.getElementById('error');
 const result = document.getElementById('result');
 const resultLink = document.getElementById('result-link');
 const copyButton = document.getElementById('copy');
-const qrImage = document.getElementById('qr-image');
-const qrDownload = document.getElementById('qr-download');
 const rows = document.getElementById('rows');
 const useExpiry = document.getElementById('use-expiry');
 const usePassword = document.getElementById('use-password');
@@ -89,11 +87,10 @@ function errorText(data) {
 
 function showResult(code) {
   const url = shortUrl(code);
-  const qrPath = `/api/qr/${encodeURIComponent(code)}`;
   resultLink.href = url;
   resultLink.textContent = url.replace(/^https?:\/\//, '');
-  qrImage.src = qrPath;
-  qrDownload.href = `${qrPath}?format=png`;
+  // รูป QR และปุ่มดาวน์โหลดจัดการใน qr-custom.js ตามการปรับแต่งที่เลือกไว้
+  window.qrCustom.setCode(code);
   copyButton.textContent = 'คัดลอก';
   result.hidden = false;
 }

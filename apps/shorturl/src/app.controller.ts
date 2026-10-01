@@ -12,6 +12,7 @@ import type { Response } from 'express';
 import { join } from 'path';
 import { AppService, NOT_FOUND } from './app.service';
 import { PUBLIC_DIR } from './public-dir';
+import { isScannable, parseQrStyle } from './qr-style';
 
 // หน้าที่แสดงแทนการ redirect ตามสถานะที่ Redirect Service ตอบมา
 const STATUS_PAGES: Record<number, { status: number; file: string }> = {
@@ -57,8 +58,18 @@ export class AppController {
   async qr(
     @Param('code') code: string,
     @Res() res: Response,
-    @Query('format') format?: string,
+    @Query() query: Record<string, unknown>,
   ) {
+    const style = parseQrStyle(query);
+    if (!isScannable(style)) {
+      res.status(400).json({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: 'สีจุดต้องเข้มกว่าสีพื้นหลังมากพอ ไม่อย่างนั้นจะสแกนไม่ได้',
+      });
+      return;
+    }
+
     // สร้าง QR ให้เฉพาะรหัสที่มีอยู่จริง ไม่รับข้อความอื่นมาแปลงเป็น QR
     const link = this.appService.isValidCode(code)
       ? await this.appService.findLink(code)
@@ -68,8 +79,8 @@ export class AppController {
       return;
     }
 
-    const isPng = format === 'png';
-    const image = await this.appService.qrImage(code, isPng ? 'png' : 'svg');
+    const isPng = query.format === 'png';
+    const image = await this.appService.qrImage(code, isPng ? 'png' : 'svg', style);
     res.setHeader('Content-Type', isPng ? 'image/png' : 'image/svg+xml');
     res.setHeader('Content-Security-Policy', "default-src 'none'");
     res.setHeader('Cache-Control', 'public, max-age=3600');

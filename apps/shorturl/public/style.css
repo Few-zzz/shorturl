@@ -323,7 +323,7 @@ a:focus-visible {
 .qr {
   flex: none;
   width: 132px;
-  height: 132px;
+  height: auto;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -588,4 +588,122 @@ a.button-link {
 
 .starting form {
   margin-top: 0;
+}
+
+/* ปรับแต่ง QR Code */
+.qr-custom {
+  flex-basis: 100%;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.qr-custom summary {
+  width: fit-content;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.qr-custom summary:hover,
+.qr-custom[open] summary {
+  color: var(--fg);
+}
+
+.custom-grid {
+  display: grid;
+  gap: 18px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  position: relative;
+}
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chip span {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.chip span:hover {
+  border-color: var(--fg);
+}
+
+.chip input:checked + span {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+
+.chip input:focus-visible + span {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.colors,
+.frame-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 22px;
+}
+
+.colors label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+input[type="color"] {
+  width: 38px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+input[type="color"]:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.qr-custom .error {
+  margin: 0;
+}
+
+button:disabled.ghost,
+a.ghost.disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
 }

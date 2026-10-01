@@ -71,15 +71,54 @@
     </form>
 
     <section id="result" class="result" aria-live="polite" hidden>
-      <img id="qr-image" class="qr" alt="QR Code ของลิงก์สั้น" width="132" height="132">
+      <img id="qr-image" class="qr" alt="QR Code ของลิงก์สั้น" width="132">
       <div class="result-body">
         <p class="eyebrow">ลิงก์สั้นของคุณ</p>
         <a id="result-link" class="short-link" target="_blank" rel="noopener noreferrer"></a>
         <div class="actions">
           <button id="copy" class="ghost" type="button">คัดลอก</button>
-          <a id="qr-download" class="ghost">ดาวน์โหลด QR</a>
+          <button id="qr-download" class="ghost" type="button">ดาวน์โหลด PNG</button>
+          <a id="qr-download-svg" class="ghost" download>SVG</a>
         </div>
       </div>
+
+      <details class="qr-custom">
+        <summary>ปรับแต่ง QR Code</summary>
+        <div class="custom-grid">
+          <fieldset>
+            <legend>รูปร่างจุด</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="qr-shape" value="square" checked><span>สี่เหลี่ยม</span></label>
+              <label class="chip"><input type="radio" name="qr-shape" value="rounded"><span>มุมมน</span></label>
+              <label class="chip"><input type="radio" name="qr-shape" value="dots"><span>วงกลม</span></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>สี</legend>
+            <div class="colors">
+              <label>สีจุด <input id="qr-fg" type="color" value="#000000"></label>
+              <label>สีพื้นหลัง <input id="qr-bg" type="color" value="#ffffff"></label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>กรอบ</legend>
+            <div class="frame-row">
+              <label class="check"><input id="qr-frame" type="checkbox"> เพิ่มกรอบพร้อมข้อความ</label>
+              <div id="qr-label-field" class="alias-input" hidden>
+                <label class="sr-only" for="qr-label">ข้อความในกรอบ</label>
+                <input id="qr-label" type="text" maxlength="24" placeholder="สแกนเลย">
+              </div>
+            </div>
+          </fieldset>
+
+          <p id="qr-warning" class="error" role="alert" hidden></p>
+          <div>
+            <button id="qr-reset" class="text" type="button">คืนค่าเริ่มต้น</button>
+          </div>
+        </div>
+      </details>
     </section>
 
     <section class="list">
@@ -105,6 +144,7 @@
   </main>
 
   <script src="/wake.js" defer></script>
+  <script src="/qr-custom.js" defer></script>
   <script src="/app.js" defer></script>
 </body>
 </html>

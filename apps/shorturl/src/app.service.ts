@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { toBuffer, toString as toSvg } from 'qrcode';
+import { toBuffer } from 'qrcode';
+import { type QrStyle, renderStyledQr } from './qr-style';
 
 type ServiceName =
   | 'LINK_SERVICE_URL'
@@ -173,11 +174,22 @@ export class AppService {
     return `${baseUrl.replace(/\/+$/, '')}/${code}`;
   }
 
-  qrImage(code: string, format: QrFormat): Promise<string | Buffer> {
-    const options = { errorCorrectionLevel: 'M', margin: 2, width: 320 } as const;
+  // SVG วาดตามการปรับแต่ง (สี รูปร่างจุด กรอบ) ส่วน PNG เป็นแบบพื้นฐานสำหรับผู้เรียก API โดยตรง
+  // หน้าเว็บสร้าง PNG ที่ปรับแต่งแล้วเองจาก SVG ใน browser
+  async qrImage(
+    code: string,
+    format: QrFormat,
+    style: QrStyle,
+  ): Promise<string | Buffer> {
     const text = this.shortUrl(code);
-    return format === 'png'
-      ? toBuffer(text, { ...options, type: 'png' })
-      : toSvg(text, { ...options, type: 'svg' });
+    if (format === 'png') {
+      return toBuffer(text, {
+        errorCorrectionLevel: 'M',
+        margin: 4,
+        width: 320,
+        type: 'png',
+      });
+    }
+    return renderStyledQr(text, style);
   }
 }
